@@ -1,60 +1,46 @@
 require('dotenv').config();
-const express = require('express')
-const connectDB = require('./config/db')
-const authroutes = require("./routes/authroutes")
-const Habitroutes = require('./routes/habitRoutes')
-const habitlog = require('./routes/logroutes')
-const goalroutes = require('./routes/goalRoutes')
-// const scheduler = require('./utils/scheduler')
-const soulroutes = require("./routes/soulFuelRoutes")
-const notificationroutes = require("./routes/notificationRoutes")
-const analytics = require("./routes/analyticsRoutes")
-const app = express()
-app.use(express.json())
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const connectDB = require('./config/db');
 
-const PORT = process.env.PORT || 4300
-const cors = require('cors')
-const path = require("path")
-// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use(cors())
-connectDB()
+// Import routes
+const authRoutes = require('./routes/authroutes');
+const habitRoutes = require('./routes/habitRoutes');
+const logRoutes = require('./routes/logroutes');
+const goalRoutes = require('./routes/goalRoutes');
+const soulRoutes = require('./routes/soulFuelRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
-// scheduler.init()
-app.get("/", (req, res) => {
-    try {
-      res.status(201).send({ message: "Hello, world!" });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  })
-app.use('/soulfuel',soulroutes );
-app.use('/notifications', notificationroutes);
-app.use('/analytics', analytics)
-app.use("/goal" , goalroutes)
-app.use("/habitLog" , habitlog)
-app.use("/users" , authroutes)
-app.use("/habit" , Habitroutes)
+const app = express();
 
-// app.listen(PORT, ()=>{
-//     console.log(`server running at http://localhost:${PORT}`)
-// })
+// Middleware
+app.use(cors());
+app.use(express.json());
 
+// Serve static uploads folder (important for multer uploads)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Connect to MongoDB
+connectDB();
 
+// Route setup
+app.use('/auth', authRoutes);
+app.use('/habits', habitRoutes);
+app.use('/logs', logRoutes);
+app.use('/goals', goalRoutes);
+app.use('/soulfuel', soulRoutes);
+app.use('/notifications', notificationRoutes);
+app.use('/analytics', analyticsRoutes);
 
-
-
-
-
-app.listen(PORT, () => {
-  console.log(`Server running on port http://localhost:${PORT}`);
+// Health check route (helps Render detect if app is alive)
+app.get('/', (req, res) => {
+  res.send('✅ Wellness Tracker backend is running');
 });
 
-
-
-
-
-
-
-
+// Start the server
+const PORT = process.env.PORT || 4300;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
